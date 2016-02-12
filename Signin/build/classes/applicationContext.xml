@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+		http://www.springframework.org/schema/aop   http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+	<!-- 配置自动扫描的包 -->
+	<context:component-scan base-package="com.lib" use-default-filters="false">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+
+	<!-- 配置数据源 -->
+	<context:property-placeholder location="classpath:db.properties" />
+
+	<!-- 配置DataSource -->
+	<bean class="com.mchange.v2.c3p0.ComboPooledDataSource" id="dataSource">
+		<property name="user" value="${jdbc.user}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+	</bean>
+
+	<!-- 配置SessionFactory -->
+	<bean class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+		id="sessionFactory">
+		<!-- 配置数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 扫描的实体包(pojo) -->
+		<property name="namingStrategy">
+			<bean class="org.hibernate.cfg.ImprovedNamingStrategy"></bean>
+		</property>
+		<property name="packagesToScan" value="com.lib.entity"></property>
+
+		<!-- 配置Hibernate 的常用属性 -->
+		<property name="hibernateProperties">
+			 <value>
+                <!-- 设置数据库方言 -->
+                hibernate.dialect=org.hibernate.dialect.MySQLDialect
+                <!-- 设置自动创建|更新|验证数据库表结构 -->
+                hibernate.hbm2ddl.auto=update
+                <!-- 是否在控制台显示sql -->
+                hibernate.show_sql=true
+                <!-- 是否格式化sql，优化显示 -->
+                hibernate.format_sql=true
+                <!-- 是否开启二级缓存 -->
+                hibernate.cache.use_second_level_cache=false
+                <!-- 是否开启查询缓存 -->
+                hibernate.cache.use_query_cache=false
+                <!-- 数据库批量查询最大数 -->
+                hibernate.jdbc.fetch_size=50
+                <!-- 数据库批量更新、添加、删除操作最大数 -->
+                hibernate.jdbc.batch_size=50
+                <!-- 是否自动提交事务 -->
+                hibernate.connection.autocommit=true
+                <!-- 指定hibernate在何时释放JDBC连接 -->
+                hibernate.connection.release_mode=auto
+                <!-- 创建session方式 hibernate4.x 的方式 -->
+                hibernate.current_session_context_class=org.springframework.orm.hibernate4.SpringSessionContext
+                <!-- javax.persistence.validation.mode默认情况下是auto的，就是说如果不设置的话它是会自动去你的classpath下面找一个bean-validation**包 
+                    所以把它设置为none即可 -->
+                javax.persistence.validation.mode=none
+            </value>
+		</property>
+	</bean>
+
+	<!-- 配置Hibernate 的事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+      <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 定义 Autowired  自动注入 bean -->
+    <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/> 
+    
+    <!-- 扫描有注解的文件  base-package 包路径 -->
+    <context:component-scan base-package="com.lib"/>
+    
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!-- 事务执行方式
+                REQUIRED：指定当前方法必需在事务环境中运行，
+                如果当前有事务环境就加入当前正在执行的事务环境，
+                如果当前没有事务，就新建一个事务。
+                这是默认值。 
+             -->
+            <tx:method name="save*" propagation="REQUIRED" /> 
+            <tx:method name="add*" propagation="REQUIRED" /> 
+            <tx:method name="create*" propagation="REQUIRED" /> 
+            <tx:method name="insert*" propagation="REQUIRED" /> 
+            <tx:method name="update*" propagation="REQUIRED" /> 
+            <tx:method name="merge*" propagation="REQUIRED" /> 
+            <tx:method name="del*" propagation="REQUIRED" /> 
+            <tx:method name="remove*" propagation="REQUIRED" /> 
+            <tx:method name="put*" propagation="REQUIRED" /> 
+            <tx:method name="use*" propagation="REQUIRED"/> 
+            <!--hibernate4必须配置为开启事务 否则 getCurrentSession()获取不到--> 
+            <tx:method name="get*" propagation="REQUIRED" read-only="true" /> 
+            <tx:method name="count*" propagation="REQUIRED" read-only="true" /> 
+            <tx:method name="find*" propagation="REQUIRED" read-only="true" /> 
+            <tx:method name="list*" propagation="REQUIRED" read-only="true" /> 
+            <!-- 
+                指定当前方法以非事务方式执行操作，如果当前存在事务，就把当前事务挂起，等我以非事务的状态运行完，再继续原来的事务。 
+                查询定义即可
+                read-only="true"  表示只读
+             -->
+            <tx:method name="*" propagation="NOT_SUPPORTED" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+    
+     <!-- 定义切面，在 * tdxy.*.service.*ServiceImpl.*(..) 中执行有关的hibernate session的事务操作 -->
+    <aop:config>
+        <aop:pointcut id="serviceOperation" expression="execution(* com.lib.*.*(..))" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceOperation" />
+    </aop:config>
+	
+</beans>

@@ -1,0 +1,82 @@
+body {
+    font-family: "Microsoft YaHei", Helvetica;
+    padding-top: 20px;
+}
+
+.login-form {
+    margin-top: 200px;
+}
+
+.login-header {
+    font-family: "Microsoft Yahei";
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+.form-control {
+    font-family: "Microsoft Yahei";
+}
+
+.navbar-brand {
+    font-size: 23px;
+}
+
+.btn-sign {
+    height: 510px;
+    border-radius: 6px;
+    font-size: 40px;
+    margin-top: 5px;
+}
+
+.sign-info {
+    float:left;
+    margin-top: 5px;
+    padding: 20px;
+    background-color: #edf1f2;
+    border-radius: 6px;
+    height: 510px;
+}
+
+.sign-info-line {
+    float: left;
+    width: 100%;
+    margin-bottom: 5px;
+    line-height: 20px;
+}
+
+.sign-info-line * {
+    float: left;
+    margin-right: 5px;
+}
+
+.sign-info-line span {
+    margin-top: 7px;
+}
+
+.cal {
+    float: left;
+    width:100%;
+    margin-top: 5px;
+}
+
+.fc-bgevent {
+    /* default look for background events */
+    background: rgb(143, 223, 130);
+    opacity: .8;
+    filter: alpha(opacity=30);
+    /* for IE */
+}
+
+.fc-nonbusiness {
+    /* default look for non-business-hours areas */
+    /* will inherit .fc-bgevent's styles */
+    background: #d7d7d7;
+    opacity: .3;
+    filter: alpha(opacity=30);
+    /* for IE */
+}
+
+.cal-record h2 {
+    font-size: 30px;
+}
